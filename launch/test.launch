@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<arg name="robot" default="suav1"/>
+
+
+	<group ns="$(arg robot)">
+		<!-- mavros interface -->
+		<node pkg="nodelet" type="nodelet" name="fast_model" args="standalone fast_model/FastModelInterface" required="true" output="screen">
+			<!-- <param name="use_px4" value="$(arg px4_stil)"/>
+			<remap from="~mavros/state" to="mavros/state"/>
+			<remap from="~mavros/rc/in" to="mavros/rc/in"/>
+			<remap from="~mavros/set_mode" to="mavros/set_mode"/>
+			<remap from="~mavros/vfr_hud" to="mavros/vfr_hud"/>
+			<remap from="~mavros/setpoint_raw/attitude" to="mavros/setpoint_raw/attitude"/>
+			<remap from="~mavros/local_position/pose" to="mavros/local_position/pose"/>
+			<remap from="~mavros/local_position/velocity_local" to="mavros/local_position/velocity_local"/>
+			<remap from="~mavros/odom_enu" to="mavros/odom_enu"/>
+			<remap from="~ctrl_cmd" to="cmd_vel"/>
+			<remap from="~odom" to="$(arg odom_topic)"/>
+			<remap from="~px4_state" to="ctrl_interface_state"/>
+			<remap from="~airspeed" to="ctrl_interface_airpseed"/> -->
+		</node>
+	</group>
+</launch>

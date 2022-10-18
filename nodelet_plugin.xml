@@ -1,0 +1,7 @@
+<library path="lib/libfast_model_interface">
+  <class name="fast_model/FastModelInterface" type="FastModelInterface" base_class_type="nodelet::Nodelet">
+    <description>
+        fast model plugin
+    </description>
+  </class>
+</library>
