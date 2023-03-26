@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<arg name="robot" default="suav1"/>
+	<arg name="id" default="1"/>
+	<arg name="manager" default="$(arg robot)_manager_control"/>
+	<arg name="px4_stil" default="true"/>
+	<arg name="odom_topic" default="mavros/odom_enu"/>
+	<arg name="init_px" default="0.0"/>
+	<arg name="init_py" default="0.0"/>
+	<arg name="init_pz" default="500.0"/>
+	<arg name="init_yaw" default="0.0"/>
+	<arg name="init_flight_speed" default="100.0"/>
+	<arg name="bts_publisher_port" default="1666"/>
+	<arg name="bts_server_port" default="1667"/>
+	<arg name="route_file_path" default="$(find rqt_route_planning)/route_files/output_file.csv"/>
+
+    <arg name="paused" default="false" />
+    <arg name="use_sim_time" default="true" />
+    <arg name="gui" default="true" />
+    <arg name="headless" default="false" />
+    <arg name="debug" default="false" />
+    <arg name="enable_logging" default="false"/>
+    <arg name="log_file" default="fast_model"/>
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find fast_model)/worlds/empty_world.world"/>
+        <!-- <arg name="world_name" value="" /> -->
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="paused" value="$(arg paused)" />
+        <arg name="use_sim_time" value="$(arg use_sim_time)" />
+        <arg name="headless" value="$(arg headless)" />
+    </include>
+
+    <param name="robot_description" command="
+        $(find xacro)/xacro '$(find fast_model)/urdf/fast_model.xacro'
+        enable_logging:=$(arg enable_logging)
+        log_file:=$(arg log_file)"
+    />
+
+	<group ns="$(arg robot)">
+
+        <!-- push robot_description to factory and spawn robot in gazebo -->
+        <node name="fast_model_gazebo" pkg="gazebo_ros" type="spawn_model"
+        args="-param /robot_description
+            -urdf
+            -x $(arg init_px)
+            -y $(arg init_py)
+            -z $(arg init_pz)
+            -Y $(arg init_yaw)
+            -model $(arg robot)"
+        respawn="false" output="screen">
+        </node>
+
+		<!-- nodelet manager -->
+		<node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" output="screen"/>
+
+		<!-- fast model interface -->
+		<node pkg="nodelet" type="nodelet" name="fast_model" args="standalone fast_model/FastModelInterface" required="true" output="screen">
+			<param name="~init_position/x" value="$(arg init_px)"/>
+			<param name="~init_position/y" value="$(arg init_py)"/>
+			<param name="~init_position/z" value="$(arg init_pz)"/>
+			<param name="~init_position/yaw" value="$(arg init_yaw)"/>
+			<param name="~init_flight_speed" value="$(arg init_flight_speed)"/>
+			<remap from="~mavros/state" to="mavros/state"/>
+			<remap from="~mavros/vfr_hud" to="mavros/vfr_hud"/>
+			<remap from="~mavros/local_position/pose" to="mavros/local_position/pose"/>
+			<remap from="~mavros/local_position/velocity_local" to="mavros/local_position/velocity_local"/>
+			<remap from="~ctrl_cmd" to="cmd_vel"/>
+			<remap from="~odom" to="$(arg odom_topic)"/>
+			<remap from="~plan_cmd" to="trackers_manager/cmd"/>
+		</node>
+
+		<!-- mavros interface -->
+		<node pkg="nodelet" type="nodelet" name="mavros_interface" args="standalone mavros_interface/MavrosInterface" required="true" output="screen">
+			<param name="use_px4" value="$(arg px4_stil)"/>
+			<remap from="~mavros/state" to="mavros/state"/>
+			<remap from="~mavros/rc/in" to="mavros/rc/in"/>
+			<remap from="~mavros/set_mode" to="mavros/set_mode"/>
+			<remap from="~mavros/vfr_hud" to="mavros/vfr_hud"/>
+			<remap from="~mavros/setpoint_raw/attitude" to="mavros/setpoint_raw/attitude"/>
+			<remap from="~mavros/local_position/pose" to="mavros/local_position/pose"/>
+			<remap from="~mavros/local_position/velocity_local" to="mavros/local_position/velocity_local"/>
+			<remap from="~mavros/odom_enu" to="mavros/odom_enu"/>
+			<remap from="~ctrl_cmd" to="cmd_vel"/>
+			<remap from="~odom" to="$(arg odom_topic)"/>
+			<remap from="~px4_state" to="ctrl_interface_state"/>
+			<remap from="~airspeed" to="ctrl_interface_airpseed"/>
+		</node>
+
+	</group>
+
+
+</launch>

@@ -35,9 +35,9 @@ namespace fast_model
             } PreciseControl;
 
             FastModel() {
-                V_filter_.setParameters(0.01, 5.0);
+                V_filter_.setParameters(0.01, 9.0);
                 vz_filter_.setParameters(0.01, 3.0);
-                roll_filter_.setParameters(0.01, 0.03);
+                roll_filter_.setParameters(0.01, 0.08);
                 scale_acc_thrust_ = 3.0;
             };
             ~FastModel();

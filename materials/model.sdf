@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="Terrain Test">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 0 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://fast_model/meshes/test1.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://fast_model/meshes/test1.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://fast_model/materials/scripts</uri>
+            <uri>model://fast_model/materials/textures</uri>
+            <name>TerrainTest/Test</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

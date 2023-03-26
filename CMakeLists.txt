@@ -29,14 +29,22 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   nodelet
   tracker_msgs
+  pluginlib
+  urdf
 )
 
 find_package(Eigen3 REQUIRED)
+
+find_package(gazebo REQUIRED)
+link_directories(${GAZEBO_LIBRARY_DIRS})
+include_directories(${GAZEBO_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIR})
 
 catkin_package(
   INCLUDE_DIRS
   include
   LIBRARIES
+  gazebo_world_plugin_loader
   ${PROJECT_NAME}
   CATKIN_DEPENDS
   roscpp
@@ -46,8 +54,10 @@ catkin_package(
   geometry_msgs
   mavros_msgs
   tf
+  urdf
   DEPENDS
-  EIGEN3)
+  EIGEN3
+  gazebo)
 
 ###########
 ## Build ##
@@ -74,6 +84,10 @@ RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 install(FILES nodelet_plugin.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+add_library(fast_model_gazebo_plugin src/fast_model_gazebo_plugin.cpp)
+target_link_libraries(fast_model_gazebo_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
+add_dependencies(fast_model_gazebo_plugin ${catkin_EXPORTED_TARGETS})
 
 
 ## Declare a C++ library

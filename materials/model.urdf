@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<robot name="map">
+  <link name="world">
+    <visual name="visual">
+      <geometry>
+        <!-- <mesh>
+          <uri>package://fast_model/meshes/test1.dae</uri>
+        </mesh> -->
+        <mesh filename="package://fast_model/meshes/test1.dae"/>
+      </geometry>
+      <!-- <material>
+        <script>
+          <uri>package://fast_model/materials/scripts</uri>
+          <uri>package://fast_model/materials/textures</uri>
+          <name>TerrainTest/Test</name>
+        </script>
+      </material> -->
+    </visual>
+  </link>
+</robot>
