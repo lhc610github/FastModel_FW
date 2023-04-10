@@ -1,0 +1,14 @@
+material T90
+{
+  receive_shadows off
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture T90.jpeg
+      }
+    }
+  }
+}

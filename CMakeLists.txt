@@ -72,7 +72,7 @@ include_directories(
 
 
   add_library(fast_model_interface src/fast_model_interface.cpp)
-  target_include_directories(fast_model_interface PUBLIC include ${catkin_INCLUDE_DIRS})
+  target_include_directories(fast_model_interface PUBLIC include ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE_DIRS})
   target_link_libraries(fast_model_interface PUBLIC ${catkin_LIBRARIES} Eigen3::Eigen)
   add_dependencies(fast_model_interface ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 

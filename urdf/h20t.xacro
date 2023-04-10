@@ -62,12 +62,12 @@
 <joint name="body_to_camer" type="fixed">
     <parent link="body_link"/>
     <child link="camera"/>
-    <origin xyz="${mesh_scale_iso*(-0.3)} 0 ${mesh_scale_iso*(-0.28)}" rpy="0 0.5 0"/>
-    <!-- <origin xyz="0 0 0" rpy="0 0 0"/> -->
+    <!-- <origin xyz="${mesh_scale_iso*(-0.3)} 0 ${mesh_scale_iso*(-0.28)}" rpy="0 0.5 0"/> -->
+    <origin xyz="0 0 0" rpy="0 0 0"/>
 </joint>
 
 <link name="camera">
-    <visual>
+    <!-- <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
         <sphere radius="${mesh_scale_iso*(0.16)}" />
@@ -75,7 +75,7 @@
         <material name="CameraBlack">
         <color rgba="0.117 0.117 0.117 1.0"/>
         </material>
-    </visual>
+    </visual> -->
 
     <inertial>
         <mass value="${cameraMass}" />
@@ -91,10 +91,10 @@
     <always_on>1</always_on>
     <visualize>false</visualize>
     <camera name="head">
-        <horizontal_fov>0.12</horizontal_fov>
+        <horizontal_fov>1.09</horizontal_fov>
         <image>
-        <width>640</width>
-        <height>480</height>
+        <width>1920</width>
+        <height>1080</height>
         <format>L8</format>
         </image>
         <clip>
@@ -106,6 +106,47 @@
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
         <cameraName>camera_mono</cameraName>
+        <imageTopicName>image_raw</imageTopicName>
+        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        <frameName>camera</frameName>
+        <hackBaseline>0.07</hackBaseline>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+    </plugin>
+    </sensor>
+    <gravity>0</gravity>
+    <material>
+    Gazebo/Black
+    </material>
+</gazebo>
+
+<gazebo reference="camera">
+<gravity>0</gravity>
+    <sensor type="camera" name="camera_rgb">
+    <update_rate>10.0</update_rate>
+    <always_on>1</always_on>
+    <visualize>false</visualize>
+    <camera name="head">
+        <!-- 1.3962634 --> <!-- Specify in RAD -->
+        <!-- <horizontal_fov>1.09</horizontal_fov> -->
+        <horizontal_fov>1.09</horizontal_fov>
+        <image>
+        <width>1920</width>
+        <height>1080</height>
+        <format>R8G8B8</format>
+        </image>
+        <clip>
+        <near>0.02</near>
+        <far>30000</far>
+        </clip>
+    </camera>
+    <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>0.0</updateRate>
+        <cameraName>camera_rgb</cameraName>
         <imageTopicName>image_raw</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
         <frameName>camera</frameName>
