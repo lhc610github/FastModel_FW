@@ -5,8 +5,7 @@
 #include <Eigen/Core>
 #include <fast_model/AlphaFilter.hpp>
 #include <tf/transform_datatypes.h>
-
-#define CONSTANTS_ONE_G 9.80665f
+#include <geo/geo.h>
 
 namespace fast_model
 {
