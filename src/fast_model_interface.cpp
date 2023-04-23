@@ -11,6 +11,7 @@
 #include <mavros_msgs/VFR_HUD.h>
 #include <std_msgs/Float64.h>
 #include <tracker_msgs/TrackerCmd.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <nodelet/nodelet.h>
 #include <ros/ros.h>
 // #include <sensor_msgs/BatteryState.h>
@@ -19,6 +20,7 @@
 
 #include <Eigen/Geometry>
 #include <fast_model/fast_model.h>
+#include <geo/geo.h>
 
 enum px4_state{
     WAITE_FOR_ARM,
@@ -38,12 +40,15 @@ class FastModelInterface : public nodelet::Nodelet {
         ros::Publisher state_pub_;
         ros::Publisher vfr_hub_pub_;
         ros::Publisher fake_ctrl_cmd_pub_;
+        ros::Publisher mav_gps_pub_;
 
         ros::Subscriber ctrl_cmd_sub_;
 
         fast_model::FastModel model_;
 
         ros::Timer AllinOne_timer_;
+
+        geo::GlobalLocalTransformer gl_map_reference_;
 };
 
 void FastModelInterface::onInit() {
@@ -51,6 +56,7 @@ void FastModelInterface::onInit() {
 
     mav_pos_pub_ = priv_nh.advertise<geometry_msgs::PoseStamped>("mavros/local_position/pose", 10);
     mav_vel_pub_ = priv_nh.advertise<geometry_msgs::TwistStamped>("mavros/local_position/velocity_local", 10);
+    mav_gps_pub_ = priv_nh.advertise<sensor_msgs::NavSatFix>("mavros/global_position/global", 10);
     state_pub_ = priv_nh.advertise<mavros_msgs::State>("mavros/state", 10);
     vfr_hub_pub_ = priv_nh.advertise<mavros_msgs::VFR_HUD>("mavros/vfr_hud", 10);
     fake_ctrl_cmd_pub_ = priv_nh.advertise<geometry_msgs::Twist>("ctrl_cmd", 10);
@@ -59,12 +65,28 @@ void FastModelInterface::onInit() {
 
     AllinOne_timer_ = priv_nh.createTimer(ros::Duration(0.01), &FastModelInterface::all_in_one_timer_CB, this);
 
+    double lat_0, lon_0;
+    priv_nh.param<double>("map_ref_init/lat", lat_0, 38.93511);
+    priv_nh.param<double>("map_ref_init/lon", lon_0, 110.15751);
+    gl_map_reference_.init(lat_0, lon_0, ros::Time::now().toNSec());
+
+    bool use_gps_init;
     double init_px, init_py, init_pz, init_yaw, init_V;
-    priv_nh.param<double>("init_position/x", init_px, 0.0);
-    priv_nh.param<double>("init_position/y", init_py, 0.0);
-    priv_nh.param<double>("init_position/z", init_pz, 500.0);
-    priv_nh.param<double>("init_position/yaw", init_yaw, 0.0);
-    priv_nh.param<double>("init_flight_speed", init_V, 20.0);
+    priv_nh.param<bool>("use_gps_init", use_gps_init, false);
+    if (use_gps_init) {
+        double init_lat, init_lon;
+        priv_nh.param<double>("init_gps/lat",      init_lat, 38.93511);
+        priv_nh.param<double>("init_gps/lon",      init_lon, 110.15751);
+        gl_map_reference_.map_projection_project(init_lat, init_lon, &init_px, &init_py);
+        priv_nh.param<double>("init_gps/z",        init_pz,  500.0);
+        priv_nh.param<double>("init_gps/yaw",      init_yaw, 0.0);
+    } else {
+        priv_nh.param<double>("init_position/x",   init_px,  0.0);
+        priv_nh.param<double>("init_position/y",   init_py,  0.0);
+        priv_nh.param<double>("init_position/z",   init_pz,  500.0);
+        priv_nh.param<double>("init_position/yaw", init_yaw, 0.0);
+    }
+    priv_nh.param<double>("init_flight_speed", init_V,   20.0);
 
     fast_model::FastModel::State init_state;
     init_state.pos = {init_px, init_py, init_pz};
@@ -124,6 +146,20 @@ void FastModelInterface::all_in_one_timer_CB(const ros::TimerEvent&) {
                     odom.pose.pose.position.y,
                     odom.pose.pose.position.z).norm();
     vfr_hub_pub_.publish(vfr_hub_msg);
+
+    sensor_msgs::NavSatFix nav_sat_msg;
+    nav_sat_msg.header = odom.header;
+    nav_sat_msg.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
+    nav_sat_msg.status.status = sensor_msgs::NavSatStatus::STATUS_FIX;
+    double lat, lon;
+    gl_map_reference_.map_projection_reproject(odom.pose.pose.position.x,
+                                                odom.pose.pose.position.y,
+                                                &lat, &lon);
+    nav_sat_msg.latitude = lat;
+    nav_sat_msg.longitude = lon;
+    nav_sat_msg.altitude = odom.pose.pose.position.z;
+    nav_sat_msg.position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_UNKNOWN;
+    mav_gps_pub_.publish(nav_sat_msg);
 }
 
 #include <pluginlib/class_list_macros.h>
